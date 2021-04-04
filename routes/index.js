@@ -17,5 +17,6 @@ router.use('/login', require('./login'));
 router.use('/register', require('./register'));
 router.use('/files', require('./files'));
 router.use('/configs', require('./configs'));
+router.use('/devices', require('./devices'));
 
 module.exports = router;

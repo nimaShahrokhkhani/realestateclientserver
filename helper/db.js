@@ -7,7 +7,8 @@ const COLLECTIONS = {
     USERS: 'users',
     FILES: 'files',
     CONFIGS:'configs',
-    AGENCY : 'agency'
+    AGENCY : 'agency',
+    DEVICES : 'devices'
 
 };
 
