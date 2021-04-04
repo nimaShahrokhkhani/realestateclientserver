@@ -36,7 +36,17 @@ router.post('/insert', function (request, response, next) {
                     response.status(409).send("device did not added");
                 });
             } else {
-                response.status(200).json();
+                let newValues = {
+                    $set: {
+                        isMasterDevice: dataObject.isMasterDevice,
+                        isActiveDevice: dataObject.isActiveDevice
+                    }
+                };
+                db.update(db.COLLECTIONS.DEVICES, {deviceId: dataObject.deviceId} , newValues ).then((configs) => {
+                    response.status(200).json(devices[0].deviceCode);
+                }).catch(() => {
+                    response.status(409).send("device did not added");
+                });
             }
         }).catch(() => {
             db.insert(db.COLLECTIONS.DEVICES, dataObject).then(() => {
