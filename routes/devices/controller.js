@@ -38,8 +38,8 @@ router.post('/insert', function (request, response, next) {
             } else {
                 let newValues = {
                     $set: {
-                        isMasterDevice: dataObject.isMasterDevice,
-                        isActiveDevice: dataObject.isActiveDevice
+                        isMasterDevice: dataObject.isMasterDevice ? dataObject.isMasterDevice : devices[0].isMasterDevice,
+                        isActiveDevice: dataObject.isActiveDevice ? dataObject.isActiveDevice : devices[0].isActiveDevice
                     }
                 };
                 db.update(db.COLLECTIONS.DEVICES, {deviceId: dataObject.deviceId} , newValues ).then((configs) => {
