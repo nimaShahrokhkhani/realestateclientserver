@@ -1,3 +1,4 @@
+var _ = require('underscore');
 var express = require('express');
 var router = express.Router();
 var db = require('../../helper/db');
@@ -23,6 +24,14 @@ if (loadKey()) {
     }
 }
 
+router.get('/totalCount', function(request, response, next) {
+    db.getCountOfDocument(db.COLLECTIONS.FILES, {}).then((files) => {
+        response.status(200).json(files);
+    }).catch(() => {
+        response.status(409).send("file not found");
+    });
+});
+
 router.get('/list', function (request, response, next) {
     let filterData = {
         Id: request.query.Id,
@@ -37,12 +46,12 @@ router.get('/list', function (request, response, next) {
             $gte: request.query.fromDate,//greater than or equal query
             $lte: request.query.toDate,
         },
-        address: {$all: request.query.address},
-        regionCode: {$all: request.query.regionCode},//contain query
-        regionName: {$all: request.query.regionName},
+        address: !_.isEmpty(request.query.address) ? {$in: request.query.address} : undefined,
+        regionCode: !_.isEmpty(request.query.regionCode) ? {$in: request.query.regionCode} : undefined,//contain query
+        regionName: !_.isEmpty(request.query.regionName) ? {$in: request.query.regionName} : undefined,
         sale: {
-            $gte: request.query.saleFrom,
-            $lte: request.query.saleTo,
+            $gte: request.query.fromSale,
+            $lte: request.query.toSale,
         },
         rent: {
             $gte: request.query.fromRent,
@@ -53,7 +62,7 @@ router.get('/list', function (request, response, next) {
             $lte: request.query.toMortgage,
         },
         apartment: request.query.apartment,
-        villa: request.query.villa,
+        vila: request.query.vila,
         building: request.query.building,
         home: request.query.home,
         oldHouse: request.query.oldHouse,
@@ -74,34 +83,34 @@ router.get('/list', function (request, response, next) {
         unitBuiltUpArea: request.query.unitBuiltUpArea,
         type: request.query.type,
         floorNo: {
-            $gte: request.query.floorNoTo,
-            $lte: request.query.floorNoFrom,
+            $gte: request.query.fromFloorNo,
+            $lte: request.query.toFloorNo,
         },
         unitNo: {
-            $gte: request.query.unitNoFrom,
-            $lte: request.query.unitNoTo,
+            $gte: request.query.fromUnitNo,
+            $lte: request.query.toUnitNo,
         },
         unitComment: request.query.unitComment,
         totalPrice: {
-            $gte: request.query.totalPriceFrom,
-            $lte: request.query.totalPriceTo,
+            $gte: request.query.fromTotalPrice,
+            $lte: request.query.toTotalPrice,
         },
         unitPrice: {
-            $gte: request.query.unitPriceFrom,
-            $lte: request.query.unitPriceTo,
+            $gte: request.query.fromUnitPrice,
+            $lte: request.query.toUnitPrice,
         },
         priceComment: request.query.priceComment,
         pool: request.query.pool,
         sona: request.query.sona,
         jakozi: request.query.jakozi,
         area: {
-            $gte: request.query.areaFrom,
-            $lte: request.query.areaTo,
+            $gte: request.query.fromArea,
+            $lte: request.query.toArea,
         },
         density: request.query.density,
         front: {
-            $gte: request.query.frontFrom,
-            $lte: request.query.frontTo,
+            $gte: request.query.fromFront,
+            $lte: request.query.toFront,
         },
         height: request.query.height,
         modify: request.query.modify,
@@ -114,8 +123,8 @@ router.get('/list', function (request, response, next) {
         empty: request.query.empty,
         rented: request.query.rented,
         age: {
-            $gte: request.query.ageFrom,
-            $lte: request.query.ageTo,
+            $gte: request.query.fromAge,
+            $lte: request.query.toAge,
         },
         frontKind: request.query.frontKind,
         source: request.query.source,
@@ -129,27 +138,33 @@ router.get('/list', function (request, response, next) {
             $lte: request.query.toNumber,
         },
         inHurry: request.query.inHurry,
-        equipments: request.query.equipments,
+        equipments: !_.isEmpty(request.query.equipments) ? {$in: request.query.equipments} : undefined,
         archive: request.query.archive,
         participation: request.query.participation,
         exchange: request.query.exchange,
         username: request.query.username,
         noOwnerAccess: request.query.noOwnerAccess,
+        isDeleted: request.query.isDeleted,
+        isSold: request.query.isSold,
+        isRented: request.query.isRented,
+        isDontCall: request.query.isDontCall,
     };
 
     //  const decrypted =key.decrypt(filterData,'utf8');
     // console.log('decrypted: ', decrypted);
 
-    Object.keys(filterData).forEach(key => filterData[key] === undefined && delete filterData[key]);
-    db.find(db.COLLECTIONS.FILES, {}).then((files) => {
-        for (let file of files) {
-            file.tel1 = (file.tel1 === null || file.tel1 === undefined) ? file.tel1 : key.decrypt(file.tel1, 'utf8');
-            file.tel2 = (file.tel2 === null || file.tel2 === undefined) ? file.tel2 : key.decrypt(file.tel2, 'utf8');
-            file.tel3 = (file.tel3 === null || file.tel3 === undefined) ? file.tel3 : key.decrypt(file.tel3, 'utf8');
-            file.tel4 = (file.tel4 === null || file.tel4 === undefined) ? file.tel4 : key.decrypt(file.tel4, 'utf8');
-            file.tel5 = (file.tel5 === null || file.tel5 === undefined) ? file.tel5 : key.decrypt(file.tel5, 'utf8');
-            file.owner = (file.owner === null || file.owner === undefined) ? file.owner : key.decrypt(file.owner, 'utf8');
-        }
+    Object.keys(filterData).forEach(key => !_.isEmpty(filterData[key]) && _.isEmpty(filterData[key].$gte) && delete filterData[key].$gte);
+    Object.keys(filterData).forEach(key => !_.isEmpty(filterData[key]) && _.isEmpty(filterData[key].$lte) && delete filterData[key].$lte);
+    Object.keys(filterData).forEach(key => _.isEmpty(filterData[key]) && delete filterData[key]);
+    db.find(db.COLLECTIONS.FILES, filterData, request.query.offset, request.query.length).then((files) => {
+        // for (let file of files.data) {
+        //     file.tel1 = (file.tel1 === null || file.tel1 === undefined) ? file.tel1 : key.decrypt(file.tel1, 'utf8');
+        //     file.tel2 = (file.tel2 === null || file.tel2 === undefined) ? file.tel2 : key.decrypt(file.tel2, 'utf8');
+        //     file.tel3 = (file.tel3 === null || file.tel3 === undefined) ? file.tel3 : key.decrypt(file.tel3, 'utf8');
+        //     file.tel4 = (file.tel4 === null || file.tel4 === undefined) ? file.tel4 : key.decrypt(file.tel4, 'utf8');
+        //     file.tel5 = (file.tel5 === null || file.tel5 === undefined) ? file.tel5 : key.decrypt(file.tel5, 'utf8');
+        //     file.owner = (file.owner === null || file.owner === undefined) ? file.owner : key.decrypt(file.owner, 'utf8');
+        // }
         response.status(200).json(files);
     }).catch(() => {
         response.status(409).send("file not found");
@@ -160,12 +175,12 @@ router.get('/list', function (request, response, next) {
 router.post('/insert', function (request, response, next) {
     let dataObject = {
         Id: request.body.Id,
-        tel1: key.encrypt(request.body.tel1, 'base64'),
-        tel2: key.encrypt(request.body.tel2, 'base64'),
-        tel3: key.encrypt(request.body.tel3, 'base64'),
-        tel4: key.encrypt(request.body.tel4, 'base64'),
-        tel5: key.encrypt(request.body.tel5, 'base64'),
-        owner: key.encrypt(request.body.owner, 'base64'),
+        tel1: request.body.tel1,//key.encrypt(request.body.tel1, 'base64'),
+        tel2: request.body.tel2,//key.encrypt(request.body.tel2, 'base64'),
+        tel3: request.body.tel3,//key.encrypt(request.body.tel3, 'base64'),
+        tel4: request.body.tel4,//key.encrypt(request.body.tel4, 'base64'),
+        tel5: request.body.tel5,//key.encrypt(request.body.tel5, 'base64'),
+        owner: request.body.owner,//key.encrypt(request.body.owner, 'base64'),
         iranDate: request.body.iranDate,
         date: request.body.date,
         address: request.body.address,
@@ -175,7 +190,7 @@ router.post('/insert', function (request, response, next) {
         rent: request.body.rent,
         mortgage: request.body.mortgage,
         apartment: request.body.apartment,
-        villa: request.body.villa,
+        vila: request.body.vila,
         building: request.body.building,
         home: request.body.home,
         oldHouse: request.body.oldHouse,
@@ -233,14 +248,17 @@ router.post('/insert', function (request, response, next) {
         exchange: request.body.exchange,
         username: request.body.username,
         noOwnerAccess: request.body.noOwnerAccess,
+        isDeleted: request.body.isDeleted,
+        isSold: request.body.isSold,
+        isRented: request.body.isRented,
+        isDontCall: request.body.isDontCall,
     };
 
     //const encrypted = key.encrypt(dataObject, 'base64');
     // console.log('encrypted: ', encrypted);
-
     db.insert(db.COLLECTIONS.FILES, dataObject).then((files) => {
         response.status(200).json(files);
-    }).catch(() => {
+    }).catch((error) => {
         response.status(409).send("File did not added");
     });
 });
@@ -249,7 +267,7 @@ router.post('/edit', function (request, response, next) {
     let query = {
         Id: request.body.Id,
     };
-    let newValues = {
+    let newValuesObject = {
         tel1: request.body.tel1,
         tel2: request.body.tel2,
         tel3: request.body.tel3,
@@ -265,7 +283,7 @@ router.post('/edit', function (request, response, next) {
         rent: request.body.rent,
         mortgage: request.body.mortgage,
         apartment: request.body.apartment,
-        villa: request.body.villa,
+        vila: request.body.vila,
         building: request.body.building,
         home: request.body.home,
         oldHouse: request.body.oldHouse,
@@ -323,6 +341,14 @@ router.post('/edit', function (request, response, next) {
         exchange: request.body.exchange,
         username: request.body.username,
         noOwnerAccess: request.body.noOwnerAccess,
+        isDeleted: request.body.isDeleted,
+        isSold: request.body.isSold,
+        isRented: request.body.isRented,
+        isDontCall: request.body.isDontCall,
+    };
+    Object.keys(newValuesObject).forEach(key => newValuesObject[key] === undefined && delete newValuesObject[key]);
+    let newValues = {
+        $set: newValuesObject
     };
     db.update(db.COLLECTIONS.FILES, query, newValues).then((files) => {
         response.status(200).json(files);

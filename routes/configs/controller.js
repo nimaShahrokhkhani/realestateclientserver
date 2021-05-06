@@ -19,12 +19,14 @@ router.get('/list', function(request, response, next) {
         source: request.query.source,
         frontKind: request.query.frontKind,
         region: request.query.region,
+        regionPrice: request.query.regionPrice,
         type: request.query.type,
         moshakhase: request.query.moshakhase,
         publisher: request.query.publisher,
         pool: request.query.pool,
         sona: request.query.sona,
         jakozi: request.query.jakozi,
+        blackList: request.query.blackList,
     };
 
     Object.keys(filterData).forEach(key => filterData[key] === undefined && delete filterData[key]);
@@ -49,12 +51,14 @@ router.post('/insert', function(request, response, next) {
         source: request.body.source,
         frontKind: request.body.frontKind,
         region: request.body.region,
+        regionPrice: request.body.regionPrice,
         type: request.body.type,
         moshakhase: request.body.moshakhase,
         publisher: request.body.publisher,
         pool: request.body.pool,
         sona: request.body.sona,
         jakozi: request.body.jakozi,
+        blackList: request.body.blackList,
     };
 
     Object.keys(dataObject).forEach(key => dataObject[key] === undefined && delete dataObject[key]);
@@ -79,12 +83,14 @@ router.post('/insert', function(request, response, next) {
                     source:request.body.source ? request.body.source : configs[0].source ,
                     frontKind:request.body.frontKind ? request.body.frontKind : configs[0].frontKind ,
                     region:request.body.region ? request.body.region : configs[0].region ,
+                    regionPrice:request.body.regionPrice ? request.body.regionPrice : configs[0].regionPrice ,
                     type:request.body.type ? request.body.type : configs[0].type ,
                     moshakhase:request.body.moshakhase ? request.body.moshakhase : configs[0].moshakhase ,
                     publisher:request.body.publisher ? request.body.publisher : configs[0].publisher ,
                     pool:request.body.pool ? request.body.pool : configs[0].pool ,
                     sona:request.body.sona ? request.body.sona : configs[0].sona ,
-                    jakozi:request.body.jakozi ? request.body.jakozi : configs[0].jakozi
+                    jakozi:request.body.jakozi ? request.body.jakozi : configs[0].jakozi,
+                    blackList:request.body.blackList ? request.body.blackList : configs[0].blackList
                 }
             };
             db.update(db.COLLECTIONS.CONFIGS, {configId: 0} , newValues ).then((configs) => {

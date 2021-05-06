@@ -40,7 +40,7 @@ router.get('/list', function (request, response, next) {
 
     };
     Object.keys(filterData).forEach(key => filterData[key] === undefined && delete filterData[key]);
-    db.find(db.COLLECTIONS.USERS, filterData).then((users) => {
+    db.find(db.COLLECTIONS.USERS, filterData, request.query.offset, request.query.length).then((users) => {
         response.status(200).json(users);
     }).catch(() => {
         response.status(409).send("Username not found");
