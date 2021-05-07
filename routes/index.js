@@ -6,6 +6,8 @@ const sessionManager = require('../helper/sessionManager');
 router.use(sessionManager.initialize());
 router.use('/login', require('./login'));
 router.use('/register', require('./register'));
+router.use('/configs', require('./configs'));
+router.use('/devices', require('./devices'));
 
 router.use((request, response, next) => {
     sessionManager.getSession(request)
@@ -18,9 +20,6 @@ router.use((request, response, next) => {
 });
 
 router.use('/users', require('./users'));
-router.use('/login', require('./login'));
 router.use('/files', require('./files'));
-router.use('/configs', require('./configs'));
-router.use('/devices', require('./devices'));
 
 module.exports = router;
