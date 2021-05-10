@@ -72,25 +72,25 @@ router.post('/insert', function(request, response, next) {
         } else {
             let newValues = {
                 $set: {
-                    realStateName:request.body.realStateName ? request.body.realStateName : configs[0].realStateName,
-                    apartment:request.body.apartment ? request.body.apartment : configs[0].apartment ,
-                    vila:request.body.vila ? request.body.vila : configs[0].vila ,
-                    building:request.body.building ? request.body.building : configs[0].building ,
-                    oldHouse:request.body.oldHouse ? request.body.oldHouse : configs[0].oldHouse ,
-                    office:request.body.office ? request.body.office : configs[0].office ,
-                    equipments:request.body.equipments ? request.body.equipments : configs[0].equipments ,
-                    documentKind:request.body.documentKind ? request.body.documentKind : configs[0].documentKind ,
-                    source:request.body.source ? request.body.source : configs[0].source ,
-                    frontKind:request.body.frontKind ? request.body.frontKind : configs[0].frontKind ,
-                    region:request.body.region ? request.body.region : configs[0].region ,
-                    regionPrice:request.body.regionPrice ? request.body.regionPrice : configs[0].regionPrice ,
-                    type:request.body.type ? request.body.type : configs[0].type ,
-                    moshakhase:request.body.moshakhase ? request.body.moshakhase : configs[0].moshakhase ,
-                    publisher:request.body.publisher ? request.body.publisher : configs[0].publisher ,
-                    pool:request.body.pool ? request.body.pool : configs[0].pool ,
-                    sona:request.body.sona ? request.body.sona : configs[0].sona ,
-                    jakozi:request.body.jakozi ? request.body.jakozi : configs[0].jakozi,
-                    blackList:request.body.blackList ? request.body.blackList : configs[0].blackList
+                    realStateName:request.body[0].realStateName ? request.body[0].realStateName : configs[0].realStateName,
+                    apartment:request.body[0].apartment ? request.body[0].apartment : configs[0].apartment ,
+                    vila:request.body[0].vila ? request.body[0].vila : configs[0].vila ,
+                    building:request.body[0].building ? request.body[0].building : configs[0].building ,
+                    oldHouse:request.body[0].oldHouse ? request.body[0].oldHouse : configs[0].oldHouse ,
+                    office:request.body[0].office ? request.body[0].office : configs[0].office ,
+                    equipments:request.body[0].equipments ? request.body[0].equipments : configs[0].equipments ,
+                    documentKind:request.body[0].documentKind ? request.body[0].documentKind : configs[0].documentKind ,
+                    source:request.body[0].source ? request.body[0].source : configs[0].source ,
+                    frontKind:request.body[0].frontKind ? request.body[0].frontKind : configs[0].frontKind ,
+                    region:request.body[0].region ? request.body[0].region : configs[0].region ,
+                    regionPrice:request.body[0].regionPrice ? request.body[0].regionPrice : configs[0].regionPrice ,
+                    type:request.body[0].type ? request.body[0].type : configs[0].type ,
+                    moshakhase:request.body[0].moshakhase ? request.body[0].moshakhase : configs[0].moshakhase ,
+                    publisher:request.body[0].publisher ? request.body[0].publisher : configs[0].publisher ,
+                    pool:request.body[0].pool ? request.body[0].pool : configs[0].pool ,
+                    sona:request.body[0].sona ? request.body[0].sona : configs[0].sona ,
+                    jakozi:request.body[0].jakozi ? request.body[0].jakozi : configs[0].jakozi,
+                    blackList:request.body[0].blackList ? request.body[0].blackList : configs[0].blackList
                 }
             };
             db.update(db.COLLECTIONS.CONFIGS, {configId: 0} , newValues ).then((configs) => {
