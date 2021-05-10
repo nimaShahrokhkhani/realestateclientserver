@@ -357,6 +357,101 @@ router.post('/edit', function (request, response, next) {
     });
 });
 
+router.post('/insertFromFiling', function (request, response, next) {
+    let query = {
+        Id: request.body.Id,
+    };
+    let newValuesObject = {
+        Id: request.body.Id,
+        tel1: request.body.tel1,
+        tel2: request.body.tel2,
+        tel3: request.body.tel3,
+        tel4: request.body.tel4,
+        tel5: request.body.tel5,
+        owner: request.body.owner,
+        iranDate: request.body.iranDate,
+        date: request.body.date,
+        address: request.body.address,
+        regionCode: request.body.regionCode,
+        regionName: request.body.regionName,
+        sale: request.body.sale,
+        rent: request.body.rent,
+        mortgage: request.body.mortgage,
+        apartment: request.body.apartment,
+        vila: request.body.vila,
+        building: request.body.building,
+        home: request.body.home,
+        oldHouse: request.body.oldHouse,
+        office: request.body.office,
+        store: request.body.store,
+        suit: request.body.suit,
+        north: request.body.north,
+        south: request.body.south,
+        east: request.body.east,
+        west: request.body.west,
+        unitFloor: request.body.unitFloor,
+        unitRoom: request.body.unitRoom,
+        unitBalcony: request.body.unitBalcony,
+        unitTelephone: request.body.unitTelephone,
+        unitWC: request.body.unitWC,
+        unitFloorCovering: request.body.unitFloorCovering,
+        unitKitchen: request.body.unitKitchen,
+        unitBuiltUpArea: request.body.unitBuiltUpArea,
+        type: request.body.type,
+        floorNo: request.body.floorNo,
+        unitNo: request.body.unitNo,
+        unitComment: request.body.unitComment,
+        totalPrice: request.body.totalPrice,
+        unitPrice: request.body.unitPrice,
+        priceComment: request.body.priceComment,
+        pool: request.body.pool,
+        sona: request.body.sona,
+        jakozi: request.body.jakozi,
+        area: request.body.area,
+        density: request.body.density,
+        front: request.body.front,
+        height: request.body.height,
+        modify: request.body.modify,
+        yard: request.body.yard,
+        smallYard: request.body.smallYard,
+        underGround: request.body.underGround,
+        employeeService: request.body.employeeService,
+        patio: request.body.patio,
+        residential: request.body.residential,
+        empty: request.body.empty,
+        rented: request.body.rented,
+        age: request.body.age,
+        frontKind: request.body.frontKind,
+        source: request.body.source,
+        publisher: request.body.publisher,
+        ownerInHouse: request.body.ownerInHouse,
+        documentKind: request.body.documentKind,
+        comment: request.body.comment,
+        caseKind: request.body.caseKind,
+        srm: request.body.srm,
+        inHurry: request.body.inHurry,
+        equipments: request.body.equipments,
+        archive: request.body.archive,
+        participation: request.body.participation,
+        exchange: request.body.exchange,
+        username: request.body.username,
+        noOwnerAccess: request.body.noOwnerAccess,
+        isDeleted: request.body.isDeleted,
+        isSold: request.body.isSold,
+        isRented: request.body.isRented,
+        isDontCall: request.body.isDontCall,
+    };
+    Object.keys(newValuesObject).forEach(key => newValuesObject[key] === undefined && delete newValuesObject[key]);
+    let newValues = {
+        $setOnInsert: newValuesObject
+    };
+    db.update(db.COLLECTIONS.FILES, query, newValues, { upsert: true }).then((files) => {
+        response.status(200).json(files);
+    }).catch(() => {
+        response.status(409).send("File not found");
+    });
+});
+
 router.post('/delete', function (request, response, next) {
     let query = {
         Id: request.body.Id,
