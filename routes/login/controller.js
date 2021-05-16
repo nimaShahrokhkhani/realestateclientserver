@@ -9,7 +9,8 @@ router.post('/', function(request, response, next) {
     db.find(db.COLLECTIONS.USERS,{username: username, password: password}).then((users) => {
         if (users.length !== 0) {
                sessionManager.regenerate(request).then((session) => {
-                response.status(200).json(users[0]);
+                   delete users[0]["password"];
+                   response.status(200).json(users[0]);
             });
         } else {
             response.status(409).send("Username not found");
