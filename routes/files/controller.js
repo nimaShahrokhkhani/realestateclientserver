@@ -81,6 +81,7 @@ router.get('/list', function (request, response, next) {
         unitFloorCovering: request.query.unitFloorCovering,
         unitKitchen: request.query.unitKitchen,
         unitBuiltUpArea: request.query.unitBuiltUpArea,
+        unitOpen: request.query.unitOpen,
         type: request.query.type,
         floorNo: {
             $gte: parseInt(request.query.fromFloorNo),
@@ -209,6 +210,7 @@ router.post('/insert', function (request, response, next) {
         unitFloorCovering: request.body.unitFloorCovering,
         unitKitchen: request.body.unitKitchen,
         unitBuiltUpArea: request.body.unitBuiltUpArea,
+        unitOpen: request.body.unitOpen,
         type: request.body.type,
         floorNo: request.body.floorNo,
         unitNo: request.body.unitNo,
@@ -302,6 +304,7 @@ router.post('/edit', function (request, response, next) {
         unitFloorCovering: request.body.unitFloorCovering,
         unitKitchen: request.body.unitKitchen,
         unitBuiltUpArea: request.body.unitBuiltUpArea,
+        unitOpen: request.body.unitOpen,
         type: request.body.type,
         floorNo: request.body.floorNo,
         unitNo: request.body.unitNo,
