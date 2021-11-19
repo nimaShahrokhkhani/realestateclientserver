@@ -25,8 +25,18 @@ if (loadKey()) {
 }
 
 router.get('/totalCount', function(request, response, next) {
-    db.getCountOfDocument(db.COLLECTIONS.FILES, {}).then((files) => {
-        response.status(200).json(files);
+    db.getCountOfDocumentV2(db.COLLECTIONS.FILES, {}).then((files) => {
+        db.findLastRecord(db.COLLECTIONS.FILES, {}).then(lastFile => {
+            if (lastFile && lastFile[0] && lastFile[0].Number) {
+                let lastFileNumber = lastFile[0].Number - 10000;
+                let finalResult = lastFileNumber > files ? lastFileNumber + 1 : files + 1;
+                response.status(200).json(finalResult);
+            } else {
+                response.status(200).json(1);
+            }
+        }).catch(error => {
+            response.status(408).send("file not found");
+        })
     }).catch(() => {
         response.status(409).send("file not found");
     });
@@ -49,10 +59,7 @@ router.get('/list', function (request, response, next) {
         address: !_.isEmpty(request.query.address) ? {$in: request.query.address} : undefined,
         regionCode: !_.isEmpty(request.query.regionCode) ? {$in: request.query.regionCode} : undefined,//contain query
         regionName: !_.isEmpty(request.query.regionName) ? {$in: request.query.regionName} : undefined,
-        sale: {
-            $gte: parseInt(request.query.fromSale),
-            $lte: parseInt(request.query.toSale),
-        },
+        sale: !_.isEmpty(request.query.sale) ? {$in: request.query.sale} : undefined,
         rent: {
             $gte: parseInt(request.query.fromRent),
             $lte: parseInt(request.query.toRent),
@@ -61,12 +68,13 @@ router.get('/list', function (request, response, next) {
             $gte: parseInt(request.query.fromMortgage),
             $lte: parseInt(request.query.toMortgage),
         },
-        apartment: request.query.apartment,
-        vila: request.query.vila,
-        building: request.query.building,
+        apartment: request.query.apartment === "true" ? {$exists: true, $ne : ""} : request.query.apartment,
+        land: request.query.land === "true" ? {$exists: true, $ne : ""} : request.query.land,
+        vila: request.query.vila === "true" ? {$exists: true, $ne : ""} : request.query.vila,
+        building: request.query.building === "true" ? {$exists: true, $ne : ""} : request.query.building,
         home: request.query.home,
-        oldHouse: request.query.oldHouse,
-        office: request.query.office,
+        oldHouse: request.query.oldHouse === "true" ? {$exists: true, $ne : ""} : request.query.oldHouse,
+        office: request.query.office === "true" ? {$exists: true, $ne : ""} : request.query.office,
         store: request.query.store,
         suit: request.query.suit,
         north: request.query.north,
@@ -79,9 +87,13 @@ router.get('/list', function (request, response, next) {
         unitTelephone: request.query.unitTelephone,
         unitWC: request.query.unitWC,
         unitFloorCovering: request.query.unitFloorCovering,
+        unitParking: request.query.unitParking,
+        unitAnbari: request.query.unitAnbari,
         unitKitchen: request.query.unitKitchen,
         unitBuiltUpArea: request.query.unitBuiltUpArea,
         unitOpen: request.query.unitOpen,
+        unitMetri: request.query.unitMetri,
+        unitTotalAmount: request.query.unitTotalAmount,
         type: request.query.type,
         floorNo: {
             $gte: parseInt(request.query.fromFloorNo),
@@ -91,6 +103,7 @@ router.get('/list', function (request, response, next) {
             $gte: parseInt(request.query.fromUnitNo),
             $lte: parseInt(request.query.toUnitNo),
         },
+        totalUnit: request.query.totalUnit,
         unitComment: request.query.unitComment,
         totalPrice: {
             $gte: parseInt(request.query.fromTotalPrice),
@@ -113,7 +126,10 @@ router.get('/list', function (request, response, next) {
             $gte: parseInt(request.query.fromFront),
             $lte: parseInt(request.query.toFront),
         },
-        height: request.query.height,
+        height: {
+            $gte: parseInt(request.query.fromHeight),
+            $lte: parseInt(request.query.toHeight),
+        },
         modify: request.query.modify,
         yard: request.query.yard,
         smallYard: request.query.smallYard,
@@ -153,11 +169,12 @@ router.get('/list', function (request, response, next) {
 
     //  const decrypted =key.decrypt(filterData,'utf8');
     // console.log('decrypted: ', decrypted);
-
-    Object.keys(filterData).forEach(key => !_.isEmpty(filterData[key]) && _.isEmpty(filterData[key].$gte) && delete filterData[key].$gte);
-    Object.keys(filterData).forEach(key => !_.isEmpty(filterData[key]) && _.isEmpty(filterData[key].$lte) && delete filterData[key].$lte);
+    Object.keys(filterData).forEach(key => !_.isEmpty(filterData[key]) && Number.isNaN(filterData[key].$gte) && delete filterData[key].$gte);
+    Object.keys(filterData).forEach(key => !_.isEmpty(filterData[key]) && Number.isNaN(filterData[key].$lte) && delete filterData[key].$lte);
     Object.keys(filterData).forEach(key => _.isEmpty(filterData[key]) && delete filterData[key]);
-    db.find(db.COLLECTIONS.FILES, filterData, request.query.offset, request.query.length).then((files) => {
+    Object.keys(filterData).forEach(key => filterData[key] === 'true' && (filterData[key] = true));
+    Object.keys(filterData).forEach(key => filterData[key] === 'false' && (filterData[key] = false));
+    db.findWithSort(db.COLLECTIONS.FILES, filterData, request.query.offset, request.query.length, {'_id': -1}).then((files) => {
         // for (let file of files.data) {
         //     file.tel1 = (file.tel1 === null || file.tel1 === undefined) ? file.tel1 : key.decrypt(file.tel1, 'utf8');
         //     file.tel2 = (file.tel2 === null || file.tel2 === undefined) ? file.tel2 : key.decrypt(file.tel2, 'utf8');
@@ -176,6 +193,7 @@ router.get('/list', function (request, response, next) {
 router.post('/insert', function (request, response, next) {
     let dataObject = {
         Id: request.body.Id,
+        Number: request.body.Number,
         tel1: request.body.tel1,//key.encrypt(request.body.tel1, 'base64'),
         tel2: request.body.tel2,//key.encrypt(request.body.tel2, 'base64'),
         tel3: request.body.tel3,//key.encrypt(request.body.tel3, 'base64'),
@@ -191,6 +209,7 @@ router.post('/insert', function (request, response, next) {
         rent: request.body.rent,
         mortgage: request.body.mortgage,
         apartment: request.body.apartment,
+        land: request.body.land,
         vila: request.body.vila,
         building: request.body.building,
         home: request.body.home,
@@ -208,12 +227,17 @@ router.post('/insert', function (request, response, next) {
         unitTelephone: request.body.unitTelephone,
         unitWC: request.body.unitWC,
         unitFloorCovering: request.body.unitFloorCovering,
+        unitParking: request.body.unitParking,
+        unitAnbari: request.body.unitAnbari,
         unitKitchen: request.body.unitKitchen,
         unitBuiltUpArea: request.body.unitBuiltUpArea,
         unitOpen: request.body.unitOpen,
+        unitMetri: request.body.unitMetri,
+        unitTotalAmount: request.body.unitTotalAmount,
         type: request.body.type,
         floorNo: request.body.floorNo,
         unitNo: request.body.unitNo,
+        totalUnit: request.body.totalUnit,
         unitComment: request.body.unitComment,
         totalPrice: request.body.totalPrice,
         unitPrice: request.body.unitPrice,
@@ -285,6 +309,7 @@ router.post('/edit', function (request, response, next) {
         rent: request.body.rent,
         mortgage: request.body.mortgage,
         apartment: request.body.apartment,
+        land: request.body.land,
         vila: request.body.vila,
         building: request.body.building,
         home: request.body.home,
@@ -302,12 +327,17 @@ router.post('/edit', function (request, response, next) {
         unitTelephone: request.body.unitTelephone,
         unitWC: request.body.unitWC,
         unitFloorCovering: request.body.unitFloorCovering,
+        unitParking: request.body.unitParking,
+        unitAnbari: request.body.unitAnbari,
         unitKitchen: request.body.unitKitchen,
         unitBuiltUpArea: request.body.unitBuiltUpArea,
         unitOpen: request.body.unitOpen,
+        unitTotalAmount: request.body.unitTotalAmount,
+        unitMetri: request.body.unitMetri,
         type: request.body.type,
         floorNo: request.body.floorNo,
         unitNo: request.body.unitNo,
+        totalUnit: request.body.totalUnit,
         unitComment: request.body.unitComment,
         totalPrice: request.body.totalPrice,
         unitPrice: request.body.unitPrice,
@@ -366,12 +396,13 @@ router.post('/insertFromFiling', function (request, response, next) {
     };
     let newValuesObject = {
         Id: request.body.Id,
-        tel1: request.body.tel1,
-        tel2: request.body.tel2,
-        tel3: request.body.tel3,
-        tel4: request.body.tel4,
-        tel5: request.body.tel5,
-        owner: request.body.owner,
+        Number: request.body.Number,
+        tel1: request.body.tel1,//key.encrypt(request.body.tel1, 'base64'),
+        tel2: request.body.tel2,//key.encrypt(request.body.tel2, 'base64'),
+        tel3: request.body.tel3,//key.encrypt(request.body.tel3, 'base64'),
+        tel4: request.body.tel4,//key.encrypt(request.body.tel4, 'base64'),
+        tel5: request.body.tel5,//key.encrypt(request.body.tel5, 'base64'),
+        owner: request.body.owner,//key.encrypt(request.body.owner, 'base64'),
         iranDate: request.body.iranDate,
         date: request.body.date,
         address: request.body.address,
@@ -381,6 +412,7 @@ router.post('/insertFromFiling', function (request, response, next) {
         rent: request.body.rent,
         mortgage: request.body.mortgage,
         apartment: request.body.apartment,
+        land: request.body.land,
         vila: request.body.vila,
         building: request.body.building,
         home: request.body.home,
@@ -398,11 +430,17 @@ router.post('/insertFromFiling', function (request, response, next) {
         unitTelephone: request.body.unitTelephone,
         unitWC: request.body.unitWC,
         unitFloorCovering: request.body.unitFloorCovering,
+        unitParking: request.body.unitParking,
+        unitAnbari: request.body.unitAnbari,
         unitKitchen: request.body.unitKitchen,
         unitBuiltUpArea: request.body.unitBuiltUpArea,
+        unitOpen: request.body.unitOpen,
+        unitMetri: request.body.unitMetri,
+        unitTotalAmount: request.body.unitTotalAmount,
         type: request.body.type,
         floorNo: request.body.floorNo,
         unitNo: request.body.unitNo,
+        totalUnit: request.body.totalUnit,
         unitComment: request.body.unitComment,
         totalPrice: request.body.totalPrice,
         unitPrice: request.body.unitPrice,
@@ -457,9 +495,9 @@ router.post('/insertFromFiling', function (request, response, next) {
 
 router.post('/delete', function (request, response, next) {
     let query = {
-        Id: request.body.Id,
+        Id: !_.isEmpty(request.body) ? {$in: request.body} : undefined,
     };
-    db.deleteFunction(db.COLLECTIONS.FILES, query).then((files) => {
+    db.deleteManyFunction(db.COLLECTIONS.FILES, query).then((files) => {
         response.status(200).json(files);
     }).catch(() => {
         response.status(409).send("File not found");

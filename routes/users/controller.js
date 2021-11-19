@@ -41,6 +41,8 @@ router.get('/list', function (request, response, next) {
         insertFile: request.query.insertFile,
         deleteFile: request.query.deleteFile,
         editFile: request.query.editFile,
+        userType: request.query.userType,
+
 
     };
     Object.keys(filterData).forEach(key => filterData[key] === undefined && delete filterData[key]);
@@ -89,6 +91,9 @@ router.post('/insert', function (request, response, next) {
         insertFile: request.body.insertFile,
         deleteFile: request.body.deleteFile,
         editFile: request.body.editFile,
+        userType: request.body.userType,
+        saleTypePermission: request.body.saleTypePermission,
+        noeMelkPermission: request.body.noeMelkPermission,
     };
 
     var filterData = {
@@ -141,6 +146,9 @@ router.post('/edit', upload.single('file'), function (request, response, next) {
         insertFile: request.body.insertFile,
         deleteFile: request.body.deleteFile,
         editFile: request.body.editFile,
+        userType: request.body.userType,
+        saleTypePermission: request.body.saleTypePermission,
+        noeMelkPermission: request.body.noeMelkPermission,
     };
     Object.keys(newValuesObject).forEach(key => newValuesObject[key] === undefined && delete newValuesObject[key]);
     let newValues = {

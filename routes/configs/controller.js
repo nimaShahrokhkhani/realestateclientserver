@@ -40,6 +40,9 @@ router.get('/list', function(request, response, next) {
         telephone: request.query.telephone,
         floorCovering: request.query.floorCovering,
         blackList: request.query.blackList,
+        secondRegionPrice: request.query.secondRegionPrice,
+        comment: request.query.comment,
+        floor: request.query.floor,
     };
 
     Object.keys(filterData).forEach(key => filterData[key] === undefined && delete filterData[key]);
@@ -85,6 +88,9 @@ router.post('/insert', function(request, response, next) {
         telephone: request.body.telephone,
         floorCovering: request.body.floorCovering,
         blackList: request.body.blackList,
+        secondRegionPrice: request.body.secondRegionPrice,
+        comment: request.body.comment,
+        floor: request.body.floor,
     };
 
     Object.keys(dataObject).forEach(key => dataObject[key] === undefined && delete dataObject[key]);
@@ -129,7 +135,10 @@ router.post('/insert', function(request, response, next) {
                     residenceOwner: request.body[0].residenceOwner ? request.body[0].residenceOwner : configs[0].residenceOwner,
                     telephone: request.body[0].telephone ? request.body[0].telephone : configs[0].telephone,
                     floorCovering: request.body[0].floorCovering ? request.body[0].floorCovering : configs[0].floorCovering,
-                    blackList:request.body[0].blackList ? request.body[0].blackList : configs[0].blackList
+                    blackList:request.body[0].blackList ? request.body[0].blackList : configs[0].blackList,
+                    secondRegionPrice:request.body[0].secondRegionPrice ? request.body[0].secondRegionPrice : configs[0].secondRegionPrice,
+                    comment:request.body[0].comment ? request.body[0].comment : configs[0].comment,
+                    floor:request.body[0].floor ? request.body[0].floor : configs[0].floor,
                 }
             };
             db.update(db.COLLECTIONS.CONFIGS, {configId: 0} , newValues ).then((configs) => {

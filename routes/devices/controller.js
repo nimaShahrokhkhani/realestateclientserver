@@ -43,14 +43,14 @@ router.post('/insert', function (request, response, next) {
                     }
                 };
                 db.update(db.COLLECTIONS.DEVICES, {deviceId: dataObject.deviceId} , newValues ).then((configs) => {
-                    response.status(200).json(devices[0].deviceCode);
+                    response.status(201).json(devices[0].deviceCode);
                 }).catch(() => {
                     response.status(409).send("device did not added");
                 });
             }
         }).catch(() => {
             db.insert(db.COLLECTIONS.DEVICES, dataObject).then(() => {
-                response.status(200).json();
+                response.status(202).json();
             }).catch(() => {
                 response.status(409).send("device did not added");
             });
