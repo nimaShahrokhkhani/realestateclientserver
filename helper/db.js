@@ -8,7 +8,8 @@ const COLLECTIONS = {
     FILES: 'files',
     CONFIGS:'configs',
     AGENCY : 'agency',
-    DEVICES : 'devices'
+    DEVICES : 'devices',
+    ZONKAN : 'zonkan'
 
 };
 

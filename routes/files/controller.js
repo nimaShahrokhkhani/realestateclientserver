@@ -484,7 +484,7 @@ router.post('/insertFromFiling', function (request, response, next) {
     };
     Object.keys(newValuesObject).forEach(key => newValuesObject[key] === undefined && delete newValuesObject[key]);
     let newValues = {
-        $setOnInsert: newValuesObject
+        $set: newValuesObject
     };
     db.update(db.COLLECTIONS.FILES, query, newValues, { upsert: true }).then((files) => {
         response.status(200).json(files);

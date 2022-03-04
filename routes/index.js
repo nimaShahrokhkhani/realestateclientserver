@@ -21,5 +21,6 @@ router.use((request, response, next) => {
 });
 
 router.use('/files', require('./files'));
+router.use('/zonkan', require('./zonkan'));
 
 module.exports = router;
