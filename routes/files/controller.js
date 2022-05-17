@@ -6,6 +6,7 @@ const fs = require('fs');
 //encryption
 const NodeRSA = require('node-rsa');
 var key = new NodeRSA({b: 512});
+let insertFileLock = false;
 const loadKey = () => {
     try {
         return fs.readFileSync('./key.json', 'utf8')
@@ -24,7 +25,7 @@ if (loadKey()) {
     }
 }
 
-router.get('/totalCount', function(request, response, next) {
+router.get('/totalCount', function (request, response, next) {
     db.getCountOfDocumentV2(db.COLLECTIONS.FILES, {}).then((files) => {
         db.findLastRecord(db.COLLECTIONS.FILES, {}).then(lastFile => {
             if (lastFile && lastFile[0] && lastFile[0].Number) {
@@ -44,7 +45,7 @@ router.get('/totalCount', function(request, response, next) {
 
 router.get('/list', function (request, response, next) {
     let filterData = {
-        Id: request.query.Id,
+        Id: !_.isEmpty(request.query.Id) ? request.query.Id : (!_.isEmpty(request.query.number) ? {$regex: request.query.number} : undefined),
         tel1: request.query.tel1,
         tel2: request.query.tel2,
         tel3: request.query.tel3,
@@ -56,7 +57,7 @@ router.get('/list', function (request, response, next) {
             $gte: parseInt(request.query.fromDate),//greater than or equal query
             $lte: parseInt(request.query.toDate),
         },
-        address: !_.isEmpty(request.query.address) ? {$in: request.query.address} : undefined,
+        address: !_.isEmpty(request.query.address) ? {$regex: request.query.address} : undefined,
         regionCode: !_.isEmpty(request.query.regionCode) ? {$in: request.query.regionCode} : undefined,//contain query
         regionName: !_.isEmpty(request.query.regionName) ? {$in: request.query.regionName} : undefined,
         sale: !_.isEmpty(request.query.sale) ? {$in: request.query.sale} : undefined,
@@ -68,13 +69,13 @@ router.get('/list', function (request, response, next) {
             $gte: parseInt(request.query.fromMortgage),
             $lte: parseInt(request.query.toMortgage),
         },
-        apartment: request.query.apartment === "true" ? {$exists: true, $ne : ""} : request.query.apartment,
-        land: request.query.land === "true" ? {$exists: true, $ne : ""} : request.query.land,
-        vila: request.query.vila === "true" ? {$exists: true, $ne : ""} : request.query.vila,
-        building: request.query.building === "true" ? {$exists: true, $ne : ""} : request.query.building,
+        apartment: request.query.apartment === "true" ? {$exists: true, $ne: ""} : request.query.apartment,
+        land: request.query.land === "true" ? {$exists: true, $ne: ""} : request.query.land,
+        vila: request.query.vila === "true" ? {$exists: true, $ne: ""} : request.query.vila,
+        building: request.query.building === "true" ? {$exists: true, $ne: ""} : request.query.building,
         home: request.query.home,
-        oldHouse: request.query.oldHouse === "true" ? {$exists: true, $ne : ""} : request.query.oldHouse,
-        office: request.query.office === "true" ? {$exists: true, $ne : ""} : request.query.office,
+        oldHouse: request.query.oldHouse === "true" ? {$exists: true, $ne: ""} : request.query.oldHouse,
+        office: request.query.office === "true" ? {$exists: true, $ne: ""} : request.query.office,
         store: request.query.store,
         suit: request.query.suit,
         north: request.query.north,
@@ -90,7 +91,10 @@ router.get('/list', function (request, response, next) {
         unitParking: request.query.unitParking,
         unitAnbari: request.query.unitAnbari,
         unitKitchen: request.query.unitKitchen,
-        unitBuiltUpArea: request.query.unitBuiltUpArea,
+        unitBuiltUpArea: {
+            $gte: parseFloat(request.query.fromUnitBuiltUpArea),
+            $lte: parseFloat(request.query.toUnitBuiltUpArea),
+        },
         unitOpen: request.query.unitOpen,
         unitMetri: request.query.unitMetri,
         unitTotalAmount: request.query.unitTotalAmount,
@@ -230,7 +234,7 @@ router.post('/insert', function (request, response, next) {
         unitParking: request.body.unitParking,
         unitAnbari: request.body.unitAnbari,
         unitKitchen: request.body.unitKitchen,
-        unitBuiltUpArea: request.body.unitBuiltUpArea,
+        unitBuiltUpArea: parseFloat(request.body.unitBuiltUpArea),
         unitOpen: request.body.unitOpen,
         unitMetri: request.body.unitMetri,
         unitTotalAmount: request.body.unitTotalAmount,
@@ -289,6 +293,129 @@ router.post('/insert', function (request, response, next) {
     });
 });
 
+router.post('/insertV2', function (request, response, next) {
+    if (!insertFileLock) {
+        insertFileLock = true;
+        db.getCountOfDocumentV2(db.COLLECTIONS.FILES, {}).then((files) => {
+            db.findLastRecord(db.COLLECTIONS.FILES, {}).then(lastFile => {
+                let resultCount = 1;
+                if (lastFile && lastFile[0] && lastFile[0].Number) {
+                    let lastFileNumber = lastFile[0].Number - 10000;
+                    let finalResult = lastFileNumber > files ? lastFileNumber + 1 : files + 1;
+                    resultCount = finalResult;
+                }
+
+                let dataObject = {
+                    Id: 'cl-' + (10000 + parseInt(resultCount)),
+                    Number: 10000 + parseInt(resultCount),
+                    tel1: request.body.tel1,//key.encrypt(request.body.tel1, 'base64'),
+                    tel2: request.body.tel2,//key.encrypt(request.body.tel2, 'base64'),
+                    tel3: request.body.tel3,//key.encrypt(request.body.tel3, 'base64'),
+                    tel4: request.body.tel4,//key.encrypt(request.body.tel4, 'base64'),
+                    tel5: request.body.tel5,//key.encrypt(request.body.tel5, 'base64'),
+                    owner: request.body.owner,//key.encrypt(request.body.owner, 'base64'),
+                    iranDate: request.body.iranDate,
+                    date: request.body.date,
+                    address: request.body.address,
+                    regionCode: request.body.regionCode,
+                    regionName: request.body.regionName,
+                    sale: request.body.sale,
+                    rent: request.body.rent,
+                    mortgage: request.body.mortgage,
+                    apartment: request.body.apartment,
+                    land: request.body.land,
+                    vila: request.body.vila,
+                    building: request.body.building,
+                    home: request.body.home,
+                    oldHouse: request.body.oldHouse,
+                    office: request.body.office,
+                    store: request.body.store,
+                    suit: request.body.suit,
+                    north: request.body.north,
+                    south: request.body.south,
+                    east: request.body.east,
+                    west: request.body.west,
+                    unitFloor: request.body.unitFloor,
+                    unitRoom: request.body.unitRoom,
+                    unitBalcony: request.body.unitBalcony,
+                    unitTelephone: request.body.unitTelephone,
+                    unitWC: request.body.unitWC,
+                    unitFloorCovering: request.body.unitFloorCovering,
+                    unitParking: request.body.unitParking,
+                    unitAnbari: request.body.unitAnbari,
+                    unitKitchen: request.body.unitKitchen,
+                    unitBuiltUpArea: parseFloat(request.body.unitBuiltUpArea),
+                    unitOpen: request.body.unitOpen,
+                    unitMetri: request.body.unitMetri,
+                    unitTotalAmount: request.body.unitTotalAmount,
+                    type: request.body.type,
+                    floorNo: request.body.floorNo,
+                    unitNo: request.body.unitNo,
+                    totalUnit: request.body.totalUnit,
+                    unitComment: request.body.unitComment,
+                    totalPrice: request.body.totalPrice,
+                    unitPrice: request.body.unitPrice,
+                    priceComment: request.body.priceComment,
+                    pool: request.body.pool,
+                    sona: request.body.sona,
+                    jakozi: request.body.jakozi,
+                    area: request.body.area,
+                    density: request.body.density,
+                    front: request.body.front,
+                    height: request.body.height,
+                    modify: request.body.modify,
+                    yard: request.body.yard,
+                    smallYard: request.body.smallYard,
+                    underGround: request.body.underGround,
+                    employeeService: request.body.employeeService,
+                    patio: request.body.patio,
+                    residential: request.body.residential,
+                    empty: request.body.empty,
+                    rented: request.body.rented,
+                    age: request.body.age,
+                    frontKind: request.body.frontKind,
+                    source: request.body.source,
+                    publisher: request.body.publisher,
+                    ownerInHouse: request.body.ownerInHouse,
+                    documentKind: request.body.documentKind,
+                    comment: request.body.comment,
+                    caseKind: request.body.caseKind,
+                    srm: request.body.srm,
+                    inHurry: request.body.inHurry,
+                    equipments: request.body.equipments,
+                    archive: request.body.archive,
+                    participation: request.body.participation,
+                    exchange: request.body.exchange,
+                    username: request.body.username,
+                    noOwnerAccess: request.body.noOwnerAccess,
+                    isDeleted: request.body.isDeleted,
+                    isSold: request.body.isSold,
+                    isRented: request.body.isRented,
+                    isDontCall: request.body.isDontCall,
+                };
+
+                //const encrypted = key.encrypt(dataObject, 'base64');
+                // console.log('encrypted: ', encrypted);
+                db.insert(db.COLLECTIONS.FILES, dataObject).then((files) => {
+                    insertFileLock = false;
+                    response.status(200).json(files);
+                }).catch((error) => {
+                    insertFileLock = false;
+                    response.status(409).send("File did not added");
+                });
+
+
+            }).catch(error => {
+                response.status(408).send("file not found");
+            })
+        }).catch(() => {
+            response.status(409).send("file not found");
+        });
+    } else {
+        response.status(501).send("file is inserting");
+    }
+});
+
 router.post('/edit', function (request, response, next) {
     let query = {
         Id: request.body.Id,
@@ -330,7 +457,7 @@ router.post('/edit', function (request, response, next) {
         unitParking: request.body.unitParking,
         unitAnbari: request.body.unitAnbari,
         unitKitchen: request.body.unitKitchen,
-        unitBuiltUpArea: request.body.unitBuiltUpArea,
+        unitBuiltUpArea: parseFloat(request.body.unitBuiltUpArea),
         unitOpen: request.body.unitOpen,
         unitTotalAmount: request.body.unitTotalAmount,
         unitMetri: request.body.unitMetri,
@@ -433,7 +560,7 @@ router.post('/insertFromFiling', function (request, response, next) {
         unitParking: request.body.unitParking,
         unitAnbari: request.body.unitAnbari,
         unitKitchen: request.body.unitKitchen,
-        unitBuiltUpArea: request.body.unitBuiltUpArea,
+        unitBuiltUpArea: parseFloat(request.body.unitBuiltUpArea),
         unitOpen: request.body.unitOpen,
         unitMetri: request.body.unitMetri,
         unitTotalAmount: request.body.unitTotalAmount,
@@ -486,7 +613,7 @@ router.post('/insertFromFiling', function (request, response, next) {
     let newValues = {
         $set: newValuesObject
     };
-    db.update(db.COLLECTIONS.FILES, query, newValues, { upsert: true }).then((files) => {
+    db.update(db.COLLECTIONS.FILES, query, newValues, {upsert: true}).then((files) => {
         response.status(200).json(files);
     }).catch(() => {
         response.status(409).send("File not found");

@@ -10,6 +10,9 @@ const cors = require("cors");
 
 var index = express();
 
+index.use(express.json({limit: '50mb'}));
+index.use(express.urlencoded({limit: '50mb'}));
+
 var debug = require('debug')('myapp:server');
 var http = require('http');
 
